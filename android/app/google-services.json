@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "739788677792",
+    "project_id": "unomate-2024",
+    "storage_bucket": "unomate-2024.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:739788677792:android:51ca7b8f4a05e420b11fc5",
+        "android_client_info": {
+          "package_name": "com.example.unomate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxbHg7RKOBy5CvCTli_P7MHXixtETv2F8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
