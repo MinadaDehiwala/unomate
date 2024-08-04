@@ -58,7 +58,7 @@ class SignupSelectionScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => const StudentSignupScreen(),
+                        pageBuilder: (context, animation, secondaryAnimation) => StudentSignupScreen(),
                         transitionsBuilder: (context, animation, secondaryAnimation, child) {
                           var begin = const Offset(1.0, 0.0);
                           var end = Offset.zero;
@@ -96,7 +96,7 @@ class SignupSelectionScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => const BusinessSignupScreen(),
+                        pageBuilder: (context, animation, secondaryAnimation) => BusinessSignupScreen(),
                         transitionsBuilder: (context, animation, secondaryAnimation, child) {
                           var begin = const Offset(1.0, 0.0);
                           var end = Offset.zero;
@@ -126,7 +126,7 @@ class SignupSelectionScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+                        pageBuilder: (context, animation, secondaryAnimation) => LoginScreen(),
                         transitionsBuilder: (context, animation, secondaryAnimation, child) {
                           var begin = const Offset(1.0, 0.0);
                           var end = Offset.zero;

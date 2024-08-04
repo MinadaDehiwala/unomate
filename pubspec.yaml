@@ -12,8 +12,15 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.6
   google_maps_flutter: ^2.6.1
+  image_picker: ^1.1.2
+  firebase_core: ^3.2.0
+  firebase_auth: ^5.1.2
+  cloud_firestore: ^5.1.0
+  firebase_storage: ^12.1.1
+  intl: ^0.19.0
+  firebase_app_check: ^0.3.0+3
 
-  image_picker: any
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -24,4 +31,16 @@ flutter:
   assets:
     - assets/images/welcome.png
     - assets/images/selection_background.png
-    - assets/images/default_hostel.jpg
+    - assets/images/student_login.png
+    - assets/images/business_signup.png
+    - assets/images/hostel1.png
+    - assets/images/hostel2.png
+    - assets/images/hostel3.png
+    - assets/images/hostel4.png
+    - assets/images/hostel5.png
+    - assets/images/hostel6.png
+    - assets/images/hostel7.png
+    - assets/images/hostel8.png
+    - assets/images/hostel9.png
+    - assets/images/hostel10.png
+    - assets/images/profile_image.png

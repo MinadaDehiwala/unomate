@@ -1,492 +1,265 @@
 import 'package:flutter/material.dart';
-import 'studentID_details.dart'; // Import the next screen
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class StudentSignupScreen extends StatefulWidget {
-  const StudentSignupScreen({super.key});
-
   @override
   _StudentSignupScreenState createState() => _StudentSignupScreenState();
 }
 
 class _StudentSignupScreenState extends State<StudentSignupScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _nicNumberController = TextEditingController();
-  final TextEditingController _genderController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _dobController = TextEditingController();
-  final TextEditingController _pobController = TextEditingController();
-  final TextEditingController _doiController = TextEditingController();
+  String _firstName = '';
+  String _lastName = '';
+  DateTime _dob = DateTime.now();
+  String _nic = '';
+  String _selectedGender = 'Male';
+  late String _selectedUniversity;
+  String _email = '';
+  String _password = '';
+  String _confirmPassword = '';
+
+  List<String> _universities = [
+    'University of Colombo',
+    'University of Peradeniya',
+    'University of Sri Jayewardenepura',
+    'University of Moratuwa',
+    'University of Kelaniya',
+    'University of Ruhuna',
+    'University of Jaffna',
+    'Rajarata University of Sri Lanka',
+    'Sabaragamuwa University of Sri Lanka',
+    'Uva Wellassa University',
+    'South Eastern University of Sri Lanka',
+    'Wayamba University of Sri Lanka',
+    'Eastern University of Sri Lanka',
+    'University of the Visual and Performing Arts',
+    'Buddhist and Pali University',
+    'General Sir John Kotelawala Defence University',
+    'Gampaha Wickramarachchi University',
+    'University of Vavuniya'
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedUniversity = _universities[0]; // Initialize with the first university
+  }
+
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      try {
+        UserCredential userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(email: _email, password: _password);
+
+        await FirebaseFirestore.instance
+            .collection('students')
+            .doc(userCredential.user!.uid)
+            .set({
+          'first_name': _firstName,
+          'last_name': _lastName,
+          'date_of_birth': _dob,
+          'nic': _nic,
+          'gender': _selectedGender,
+          'university': _selectedUniversity,
+          'email': _email,
+        });
+
+        // Navigate to the next screen or show a success message
+      } on FirebaseAuthException catch (e) {
+        // Handle error
+        print(e);
+      }
+    }
+  }
+
+  InputDecoration _buildInputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: Colors.white),
+      filled: true,
+      fillColor: Colors.black54,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.white54),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.purpleAccent),
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand,
         children: [
-          // Black background
-          Container(
-            color: Colors.black,
+          Image.asset(
+            'assets/images/student_login.png',
+            fit: BoxFit.cover,
           ),
-          // Background image with transparency
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: const AssetImage('assets/images/selection_background.png'),
-                colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.5), // Adjust the opacity here
-                  BlendMode.dstATop,
-                ),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          // Overlay content
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 40.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Fill the below details as issued in your NIC',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    SizedBox(height: 370), // Adjust space at the top to move everything down
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            decoration: _buildInputDecoration('First Name'),
+                            onSaved: (value) {
+                              _firstName = value!;
+                            },
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: TextFormField(
+                            decoration: _buildInputDecoration('Last Name'),
+                            onSaved: (value) {
+                              _lastName = value!;
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Full Name
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Expanded(
-                        flex: 1,
-                        child: Text(
-                          'Enter full name',
-                          style: TextStyle(
-                            color: Colors.white,
+                    SizedBox(height: 10),
+                    TextFormField(
+                      decoration: _buildInputDecoration('Date of Birth'),
+                      onTap: () async {
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: _dob,
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime.now(),
+                        );
+                        if (pickedDate != null && pickedDate != _dob)
+                          setState(() {
+                            _dob = pickedDate;
+                          });
+                      },
+                      readOnly: true,
+                      style: TextStyle(color: Colors.white), // Make the date text white
+                      controller: TextEditingController(
+                        text: "${_dob.toLocal()}".split(' ')[0],
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      decoration: _buildInputDecoration('NIC'),
+                      onSaved: (value) {
+                        _nic = value!;
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    DropdownButtonFormField<String>(
+                      value: _selectedGender,
+                      decoration: _buildInputDecoration('Gender'),
+                      dropdownColor: Colors.black54,
+                      onChanged: (newValue) {
+                        setState(() {
+                          _selectedGender = newValue!;
+                        });
+                      },
+                      items: <String>['Male', 'Female']
+                          .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value, style: TextStyle(color: Colors.white)),
+                        );
+                      }).toList(),
+                    ),
+                    SizedBox(height: 10),
+                    DropdownButtonFormField<String>(
+                      value: _selectedUniversity,
+                      decoration: _buildInputDecoration('University'),
+                      dropdownColor: Colors.black54,
+                      onChanged: (newValue) {
+                        setState(() {
+                          _selectedUniversity = newValue!;
+                        });
+                      },
+                      items: _universities
+                          .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value, style: TextStyle(color: Colors.white)),
+                        );
+                      }).toList(),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      decoration: _buildInputDecoration('Email'),
+                      onSaved: (value) {
+                        _email = value!;
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            decoration: _buildInputDecoration('Password'),
+                            obscureText: true,
+                            onSaved: (value) {
+                              _password = value!;
+                            },
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: TextFormField(
+                            decoration: _buildInputDecoration('Confirm Password'),
+                            obscureText: true,
+                            onSaved: (value) {
+                              _confirmPassword = value!;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 30),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF9C3FE4), Color(0xFFC65647)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: ElevatedButton(
+                        onPressed: _submitForm,
+                        child: Text('Sign Up', style: TextStyle(color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 50,
+                            vertical: 15,
+                          ),
+                          textStyle: TextStyle(
                             fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        flex: 2,
-                        child: TextFormField(
-                          controller: _fullNameController,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white,
-                            hintText: '',
-                            hintStyle: const TextStyle(color: Colors.black),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
-                                width: 2,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your full name';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  // NIC Number
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Expanded(
-                        flex: 1,
-                        child: Text(
-                          'NIC No',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        flex: 2,
-                        child: TextFormField(
-                          controller: _nicNumberController,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white,
-                            hintText: '',
-                            hintStyle: const TextStyle(color: Colors.black),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
-                                width: 2,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your NIC number';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  // Gender
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Expanded(
-                        flex: 1,
-                        child: Text(
-                          'Gender',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        flex: 2,
-                        child: DropdownButtonFormField<String>(
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
-                                width: 2,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                          items: ['Male', 'Female', 'Other'].map((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            _genderController.text = newValue!;
-                          },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please select your gender';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  // Address
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Expanded(
-                        flex: 1,
-                        child: Text(
-                          'Address',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        flex: 2,
-                        child: TextFormField(
-                          controller: _addressController,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white,
-                            hintText: '',
-                            hintStyle: const TextStyle(color: Colors.black),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
-                                width: 2,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your address';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  // Date of Birth
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Expanded(
-                        flex: 1,
-                        child: Text(
-                          'Date of Birth',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        flex: 2,
-                        child: TextFormField(
-                          controller: _dobController,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white,
-                            hintText: '',
-                            hintStyle: const TextStyle(color: Colors.black),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
-                                width: 2,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your date of birth';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  // Place of Birth
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Expanded(
-                        flex: 1,
-                        child: Text(
-                          'Place of Birth',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        flex: 2,
-                        child: TextFormField(
-                          controller: _pobController,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white,
-                            hintText: '',
-                            hintStyle: const TextStyle(color: Colors.black),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
-                                width: 2,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your place of birth';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  // Date of Issue
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Expanded(
-                        flex: 1,
-                        child: Text(
-                          'Date of Issue',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        flex: 2,
-                        child: TextFormField(
-                          controller: _doiController,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white,
-                            hintText: '',
-                            hintStyle: const TextStyle(color: Colors.black),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
-                                width: 2,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter the date of issue';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  // Navigation buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Back button
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                            size: 30,
-                          ),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ),
-                      // Forward button
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.arrow_forward,
-                            color: Colors.white,
-                            size: 30,
-                          ),
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              Navigator.push(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder: (context, animation, secondaryAnimation) => const StudentIDDetailsScreen(),
-                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                    var begin = const Offset(1.0, 0.0);
-                                    var end = Offset.zero;
-                                    var curve = Curves.ease;
-
-                                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-                                    return SlideTransition(
-                                      position: animation.drive(tween),
-                                      child: child,
-                                    );
-                                  },
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                    SizedBox(height: 50),
+                  ],
+                ),
               ),
             ),
           ),
